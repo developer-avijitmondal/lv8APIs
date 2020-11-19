@@ -17,7 +17,7 @@ class OTPLoginController extends BaseController
     {
         $APIKey = 'ec52f202-24b7-11eb-83d4-0200cd936042';//avijit
         $validator = Validator::make($request->all(), [
-            'mobile' => 'required'
+            'mobile' => 'required|regex:/[0-9]{10}/|digits:10'
         ]);
 
         if($validator->fails()){
@@ -31,7 +31,7 @@ class OTPLoginController extends BaseController
         ### Send OTP
         $API_Response_json=json_decode(file_get_contents("https://2factor.in/API/V1/$APIKey/SMS/$mobile/AUTOGEN"),false);
         $VerificationSessionId= $API_Response_json->Details;
-        $success['sms'] = $VerificationSessionId;
+        $success['sms_session_id'] = $VerificationSessionId;
         return $this->sendResponse($success, 'sms sent.');
     }
 
@@ -51,6 +51,7 @@ class OTPLoginController extends BaseController
         // $VerificationSessionId=$_REQUEST['smsID'];
         $OTP = $input['OTP'];
         $sms_id = $input['sms_id'];
+        $mobile = $input['mobile'];
         $API_Response_json=json_decode(file_get_contents("https://2factor.in/API/V1/$APIKey/SMS/VERIFY/$sms_id/$OTP"),false);
         $VerificationStatus= $API_Response_json->Details;
         // return $VerificationStatus;
@@ -59,7 +60,27 @@ class OTPLoginController extends BaseController
         {
             $success['OTP'] = $OTP;
             $success['sms_id'] = $sms_id;
-            return $this->sendResponse($success, 'OTP Matched.');
+            // Get user record
+            $user = User::where('mobile', $mobile)->first();
+            // $success['user'] = $user;
+            // return $this->sendResponse($success, 'user data');
+            if($user == null){
+                return $this->sendError('Invalid', 'invalid Mobile Numer');
+            }else{
+                // Check Condition Mobile No. Found or Not
+                if($mobile != $user->mobile) {
+                    return $this->sendError('Invalid', 'invalid Mobile Numer');
+                    // \Session::put('errors', 'Your mobile number not match in our system..!!');
+                    // return back();
+                }else{
+                    // Set Auth Details
+                    \Auth::login($user);
+                    $success['token'] =  $user->createToken('MyApp')->accessToken;
+                    $success['name'] =  $user->name;
+                    return $this->sendResponse($success, 'User login successfully.');
+                }
+            }
+            // return $this->sendResponse($success, 'OTP Matched.');
         }else{
             return $this->sendError('OTP Error', 'OTP is invalid');
         }
