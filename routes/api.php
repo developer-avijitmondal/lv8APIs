@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\API\RegisterController;
 use App\Http\Controllers\API\ProductController;
+use App\Http\Controllers\API\OTPLoginController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,6 +20,10 @@ use App\Http\Controllers\API\ProductController;
 
 Route::post('register', [RegisterController::class, 'register']);
 Route::post('login', [RegisterController::class, 'login']);
+Route::post('mobile-otp', [OTPLoginController::class, 'index']);
+Route::post('otp-verify', [OTPLoginController::class, 'verifyOTP']);
+// Route::get('/user', [UserController::class, 'index']);
+//Route::get('otp/login', 'API\OTPLoginController@index');
 
 // Route::middleware('auth:api')->get('/user', function (Request $request) {
 //     return $request->user();
