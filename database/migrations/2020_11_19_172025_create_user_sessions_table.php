@@ -13,9 +13,9 @@ class CreateUserSessionsTable extends Migration
      */
     public function up()
     {
-        Schema::create('user_sessions', function (Blueprint $table) {
+        Schema::create('usersessions', function (Blueprint $table) {
             $table->id();
-            $table->string('customer_id');
+            $table->string('customer_id')->unique();
             $table->string('login_time');
             $table->string('ip_address');
             $table->string('browser');
@@ -33,6 +33,6 @@ class CreateUserSessionsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('user_sessions');
+        Schema::dropIfExists('usersessions');
     }
 }

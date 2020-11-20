@@ -8,7 +8,8 @@ use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Validator;
-
+use App\Models\Usersession;
+// use Request;
 
 class OTPLoginController extends BaseController
 {
@@ -33,6 +34,35 @@ class OTPLoginController extends BaseController
         $VerificationSessionId= $API_Response_json->Details;
         $success['sms_session_id'] = $VerificationSessionId;
         return $this->sendResponse($success, 'sms sent.');
+    }
+
+    public function saveUserSessions(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'customer_id' => 'required',
+            'login_time' => 'required',
+            'ip_address' => 'required',
+            'browser' => 'required',
+            'geolocation' => 'required',
+            'device' => 'required',
+            'login_type' => 'required',
+        ]);
+
+        if($validator->fails()){
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+        $input = $request->all();
+        $user = Usersession::create($input);
+        $success['user'] = $user;
+        return $this->sendResponse($success, 'User session saved successfully.');
+
+    }
+
+    public function removeUserSessions($user_id)
+    {
+        $result = Usersession::where('customer_id', $user_id)->delete();
+        $success['result'] = $result;
+        return $this->sendResponse($success, 'session removed successfully.');
     }
 
     public function verifyOTP(Request $request)
